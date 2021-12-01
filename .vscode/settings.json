@@ -1,0 +1,16 @@
+{
+    "search.exclude": {
+        ".venv": true,
+        "# python cache files": true,
+        "*.pyc": true,
+        "**/*/__pycache__": true,
+        ".pytest_cache": true
+    },
+    "files.exclude": {
+        ".venv": true,
+        "# python cache files": true,
+        "*.pyc": true,
+        "**/*/__pycache__": true,
+        ".pytest_cache": true
+    }
+}

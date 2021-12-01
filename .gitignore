@@ -1,0 +1,9 @@
+.venv
+
+# python cache files
+*.pyc
+**/*/__pycache__
+.pytest_cache
+
+# advent data files
+data
