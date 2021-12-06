@@ -32,7 +32,8 @@ class Vent:
             inc_x = 1 if self.start.x < self.end.x else -1
 
         if inc_x == 0 and inc_y == 0:
-            return []
+            inc_x = 1 if self.end.x > self.start.x else -1
+            inc_y = 1 if self.end.y > self.start.y else -1
 
         line = []
         while i != self.end.x or j != self.end.y:
