@@ -18,8 +18,11 @@ class PositionOptimizer:
     def find(self) -> int:
         return min(self.try_pos(pos) for pos in range(self.max_pos))
 
+    def fuel_cost(self, pos: int) -> int:
+        return int(pos * (1 + pos) / 2)
+
     def try_pos(self, pos: int) -> int:
-        return sum(abs(crab - pos) for crab in self.crabs)
+        return sum(self.fuel_cost(abs(crab - pos)) for crab in self.crabs)
 
 
 def main():
