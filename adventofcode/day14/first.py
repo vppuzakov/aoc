@@ -1,5 +1,6 @@
 from collections import Counter
 from dataclasses import dataclass
+from functools import total_ordering
 from pathlib import Path
 
 from rich import print
@@ -22,36 +23,49 @@ def load_input(filename: str) -> tuple[str, list[Rule]]:
 class Solver:
 
     def __init__(self, template: str, rules: list[Rule]) -> None:
-        self.template = template
+        self.template = [code for code in template]
         self.rules = {rule.src: rule.dst for rule in rules}
+        self.mem = {}
 
-    def solve(self) -> int:
-        for i in range(40):
-            print(f'step: {i}')
-            self.step()
+    def solve(self, steps: int) -> int:
+        total = Counter(self.template)
 
-        counter = Counter(self.template).most_common()
-        print(counter[0], counter[-1])
-        return counter[0][1] - counter[-1][1]
-
-    def step(self) -> None:
-        template = []
         for i in range(1, len(self.template)):
-            template.append(self.template[i - 1])
-            pair = f'{self.template[i - 1]}{self.template[i]}'
-            insertion = self.rules.get(pair)
-            if insertion:
-                template.append(insertion)
+            pair = ''.join(self.template[i-1:i+1])
+            counter = self.find(pair, steps)
+            total.update(counter)
 
-        template.append(self.template[-1])
-        self.template = ''.join(template)
+        result = total.most_common()
+        print(result[0], result[-1])
+        return result[0][1] - result[-1][1]
+
+    def find(self, pair: str, steps: int) -> list[str]:
+        result = self.mem.get((pair, steps))
+        if result:
+            return result
+
+        insertion = self.rules.get(pair)
+        if not insertion:
+            return {}
+
+        if steps == 1:
+            return {insertion: 1}
+
+        counter = Counter({insertion: 1})
+        left = self.find(f'{pair[0]}{insertion}', steps - 1)
+        right = self.find(f'{insertion}{pair[1]}', steps - 1)
+        counter.update(left)
+        counter.update(right)
+
+        self.mem[(pair, steps)] = counter
+        return counter
 
 
 def main():
     template, rules = load_input('data/day14/input.txt')
     print(template, rules)
     solver = Solver(template, rules)
-    print(solver.solve())
+    print(solver.solve(40))
 
 
 if __name__ == '__main__':
