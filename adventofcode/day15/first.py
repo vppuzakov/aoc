@@ -15,6 +15,22 @@ def load_input(filename: str) -> list[list[int]]:
     return field
 
 
+def increase_field(field: list[list[int]], size: int) -> list[list[int]]:
+    large_field = []
+    n = len(field)
+    for increase_i in range(size):
+        for i in range(n):
+            row = []
+            for increase_j in range(size):
+                for j in range(n):
+                    value = (field[i][j] + increase_i + increase_j) % 9
+                    row.append(value or 9)
+
+            large_field.append(row)
+
+    return large_field
+
+
 class Solver:
 
     def __init__(self, field: list[str]) -> None:
@@ -60,7 +76,10 @@ class Solver:
 
 def main():
     field = load_input('data/day15/input.txt')
-    solver = Solver(field)
+    increased_field = increase_field(field, 5)
+
+    print(increased_field[len(increased_field) - 1][len(increased_field) - 1])
+    solver = Solver(increased_field)
     risk = solver.solve()
     print(f'{risk=}')
 
