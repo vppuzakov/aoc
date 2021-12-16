@@ -1,5 +1,4 @@
 from abc import ABC
-from os import remove
 from pathlib import Path
 
 from rich import print
@@ -19,6 +18,9 @@ class Packet(ABC):
         self.tail: str = ...
 
     def total_versions(self) -> int:
+        ...
+
+    def total_value(self) -> int:
         ...
 
 
@@ -88,6 +90,34 @@ class OperatorPacket(Packet):
 
         return total
 
+    def total_value(self) -> int:
+        values = [packet.total_value() for packet in self.subpackets]
+
+        if self.typeid == 0:
+            return sum(values)
+
+        if self.typeid == 1:
+            total = 1
+            for value in values:
+                total *= value
+
+            return total
+
+        if self.typeid == 2:
+            return min(values)
+
+        if self.typeid == 3:
+            return max(values)
+
+        if self.typeid == 5:
+            return int(values[0] > values[1])
+
+        if self.typeid == 6:
+            return int(values[0] < values[1])
+
+        if self.typeid == 7:
+            return int(values[0] == values[1])
+
 
 class LiteralPacket(Packet):
 
@@ -137,6 +167,9 @@ class LiteralPacket(Packet):
     def total_versions(self) -> int:
         return self.version
 
+    def total_value(self) -> int:
+        return self.val
+
 
 class Transmission:
 
@@ -155,6 +188,9 @@ class Transmission:
     def total_versions(self) -> int:
         return self.packet.total_versions()
 
+    def total_value(self) -> int:
+        return self.packet.total_value()
+
 
 def main():
     data = load_input('data/day16/input.txt')
@@ -165,6 +201,7 @@ def main():
     print(transmission.tail)
 
     print(f'{transmission.total_versions()=}')
+    print(f'{transmission.total_value()=}')
 
 
 if __name__ == '__main__':
