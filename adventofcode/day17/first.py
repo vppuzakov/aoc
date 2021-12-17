@@ -38,7 +38,7 @@ class Trial:
 
     def passtarget(self) -> bool:
         x, y = self.position
-        return x > self.target.x2 or y < self.target.y2
+        return x > self.target.x2 or y < self.target.y1
 
     def engage(self) -> tuple[bool, int]:
         while not self.intarget() and not self.passtarget():
@@ -78,22 +78,26 @@ class Solver:
         self.target = target
         self.best_trial_velocity = 0, 0
         self.maxy = 0
+        self.count = 0
+        self.shots = []
 
-    def solve(self) -> int:
-        dx, dy = 0, 0
-        while dx < self.target.x2:
-            dy = 0
-            while dy < abs(self.target.y1):
+    def solve(self) -> tuple[int, int]:
+        dx = 0
+        while dx < 2 * self.target.x2:
+            dy = 2 * self.target.y1
+            while dy < abs(2 * self.target.y1):
                 trial = Trial(self.target, (dx, dy))
                 reach, maxy = trial.engage()
                 if reach:
+                    self.shots.append((dx, dy))
+                    self.count += 1
                     self.maxy = max(self.maxy, maxy)
 
                 dy += 1
 
             dx += 1
 
-        return self.maxy
+        return self.maxy, self.count
 
 
 def main():
@@ -103,9 +107,10 @@ def main():
     solver = Solver(target)
     print(solver.solve())
 
-    # trial = Trial(target, (17, -4))
+    # trial = Trial(target, (7, -1))
     # print(trial.engage())
 
 
 if __name__ == '__main__':
     main()
+
