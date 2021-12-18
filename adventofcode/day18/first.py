@@ -33,9 +33,32 @@ class SailfishPair:
         return self.parent is None
 
     @property
+    def rightmost(self) -> int:
+        pair = self.right
+        while pair:
+            pair = self.right
+
+        return pair.val
+
+    @property
+    def leftmost(self) -> int:
+        pair = self.left
+        while pair:
+            pair = self.left
+
+        return pair.val
+
+
+    @property
     def adjleft(self) -> Optional['SailfishPair']:
         upper = self.parent
+        # find first left not my parent
+        # find last right val
+
         while upper:
+            if self.isright and self.parent is upper:
+                return upper.left.right if upper.left.right else upper.left
+
             if upper.isright:
                 if self.isright:
                     return upper.left
@@ -53,6 +76,9 @@ class SailfishPair:
     def adjright(self) -> Optional['SailfishPair']:
         upper = self.parent
         while upper:
+            if self.isleft and self.parent is upper:
+                return upper.right.left if upper.right.left else upper.right
+
             if upper.isleft:
                 if self.isleft:
                     return upper.right
@@ -71,7 +97,7 @@ class SailfishPair:
 
 
 def convert(line: str, parent: SailfishPair = None) -> SailfishPair:
-    if len(line) == 1:
+    if ',' not in line:
         return SailfishPair(val=int(line), parent=parent)
 
     count = 0
@@ -109,11 +135,14 @@ def find_splits(pair: Optional[SailfishPair]) -> Optional[SailfishPair]:
 
 
 def find_explosion(pair: Optional[SailfishPair], level: int = 0) -> Optional[SailfishPair]:
-    if not pair:
+    if pair is None:
         return None
 
     if level == 5:
         return pair.parent
+
+    if pair.val is not None:
+        return None
 
     explosion = find_explosion(pair.left, level + 1)
     if explosion:
@@ -132,15 +161,16 @@ def explode(pair: SailfishPair) -> SailfishPair:
         adjright.val += pair.right.val
 
     if pair.isleft:
-        pair.parent.left = SailfishPair(val=0)
+        pair.parent.left = SailfishPair(val=0, parent=pair.parent)
 
     if pair.isright:
-        pair.parent.right = SailfishPair(val=0)
+        pair.parent.right = SailfishPair(val=0, parent=pair.parent)
 
 
 def split(pair: SailfishPair) -> None:
-    pair.left = int(pair.val / 2)
-    pair.right = round(pair.val / 2)
+    half = pair.val // 2
+    pair.left = SailfishPair(val=half, parent=pair)
+    pair.right = SailfishPair(val=half + pair.val % 2, parent=pair)
     pair.val = None
 
 
@@ -148,6 +178,7 @@ def reduce(pair: SailfishPair) -> None:
     reduced = False
 
     while not reduced:
+        print(pair)
         explosion = find_explosion(pair)
         if explosion:
             explode(explosion)
@@ -164,19 +195,6 @@ def reduce(pair: SailfishPair) -> None:
 def add(left: SailfishPair, right: SailfishPair) -> SailfishPair:
     result = SailfishPair(left, right)
     return reduce(result)
-
-
-class Solver:
-
-    def __init__(self, pairs: list[SailfishPair]) -> None:
-        self.pairs = pairs
-
-    def solve(self) -> SailfishPair:
-        result = self.pairs[0]
-        for pair in self.pairs[1:]:
-            result = add(result, pair)
-
-        return result
 
 
 def explosion(line: str) -> str:
@@ -202,24 +220,48 @@ def traverse(pair: Optional[SailfishPair]) -> Generator[SailfishPair, SailfishPa
     yield from traverse(pair.right)
 
 
+def add(first: SailfishPair, second: SailfishPair) -> SailfishPair:
+    pair = SailfishPair(first, second)
+    first.parent = pair
+    second.parent = pair
+    reduce(pair)
+    return pair
+
+
+class Solver:
+
+    def __init__(self, pairs: list[SailfishPair]) -> None:
+        self.pairs = pairs
+
+    def solve(self) -> SailfishPair:
+        result = self.pairs[0]
+        for pair in self.pairs[1:]:
+            result = add(result, pair)
+
+        return result
+
+
 def main():
     # assert str(explosion('[[[[[9,8],1],2],3],4]')) == str(convert('[[[[0,9],2],3],4]'))
     # assert str(explosion('[7,[6,[5,[4,[3,2]]]]]')) == str(convert('[7,[6,[5,[7,0]]]]'))
     # assert str(explosion('[[6,[5,[4,[3,2]]]],1]')) == str(convert('[[6,[5,[7,0]]],3]'))
     # assert str(explosion('[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]')) == str(convert('[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]'))
     # assert str(explosion('[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]')) == str(convert('[[3,[2,[8,0]]],[9,[5,[7,0]]]]'))
-    assert str(explosion('[[[[0,7],4],[7,[[8,4],9]]],[1,1]]')) == str(convert('[[[[0,7],4],[15,[0,13]]],[1,1]]'))
+    # assert str(explosion('[[[[0,7],4],[7,[[8,4],9]]],[1,1]]')) == str(convert('[[[[0,7],4],[15,[0,13]]],[1,1]]'))
 
     # assert reduction('[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]') == str(convert('[[[[0,7],4],[[7,8],[6,0]]],[8,1]]'))
-    return
+    # assert reduction('[[[[[1,1],[2,2]],[3,3]],[4,4]],[5,5]]') == str(convert('[[[[3,0],[5,3]],[4,4]],[5,5]]'))
+    assert reduction('[[[[4,0],[5,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]')
+    # return
 
-    pairs = load_input('data/day18/dev.txt')
+    pairs = load_input('data/day18/dev4.txt')
     for pair in pairs:
         print(pair)
 
     solver = Solver(pairs)
+    result = solver.solve()
     print('\n\nresult:\n')
-    print(solver.solve())
+    print(result)
 
 
 if __name__ == '__main__':
