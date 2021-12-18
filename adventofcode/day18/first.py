@@ -40,7 +40,7 @@ class SailfishPair:
         upper = self.parent
         while upper:
             if upper.isleft:
-                return upper.right
+                return upper.parent.right if self.isright else upper.right
 
             upper = upper.parent
 
@@ -136,13 +136,15 @@ class Solver:
 
 def explosion(line: str) -> str:
     number = convert(line)
-    explode(find_explosion(number))
+    explosion = find_explosion(number)
+    print(explosion)
+    explode(explosion)
     return number
 
 
 def main():
-    # assert str(explosion('[[[[[9,8],1],2],3],4]')) == str(convert('[[[[0,9],2],3],4]'))
-    # assert str(explosion('[7,[6,[5,[4,[3,2]]]]]')) == str(convert('[7,[6,[5,[7,0]]]]'))
+    assert str(explosion('[[[[[9,8],1],2],3],4]')) == str(convert('[[[[0,9],2],3],4]'))
+    assert str(explosion('[7,[6,[5,[4,[3,2]]]]]')) == str(convert('[7,[6,[5,[7,0]]]]'))
     assert str(explosion('[[6,[5,[4,[3,2]]]],1]')) == str(convert('[[6,[5,[7,0]]],3]'))
 
     return
