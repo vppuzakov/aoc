@@ -29,7 +29,7 @@ class SailfishPair:
         upper = self.parent
         while upper:
             if upper.isright:
-                return upper.left
+                return upper.parent.left if self.isleft else upper.left
 
             upper = upper.parent
 
