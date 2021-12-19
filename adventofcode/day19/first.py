@@ -42,20 +42,54 @@ def load_input(filename: str) -> list[Scanner]:
     return [convert(scanner) for scanner in raw_scanners]
 
 
+def distances(scanner: Scanner) -> dict[tuple[int, int]: tuple[int, int]]:
+    result = {}
+    beacons = scanner.beacons
+    n = len(beacons)
+    for i in range(n - 1):
+        for j in range(i + 1, n):
+            dx = beacons[i].x - beacons[j].x
+            dy = beacons[i].y - beacons[j].y
+            result[(dx, dy)] = (i, j)
+            result[(-dx, -dy)] = (j, i)
+
+    return result
+
+
+def overlap(first: Scanner, second: Scanner) -> bool:
+    df = distances(first)
+    ds = distances(second)
+    overlaps = []
+
+    for distance, second_pair in ds.items():
+        first_pair = df.get(distance)
+        if first_pair:
+            overlaps.append((first_pair, second_pair))
+
+    return overlaps
+
+
 class Solver:
 
-    def __init__(self, lines: list[str]) -> None:
-        self.lines = lines
+    def __init__(self, scanners: list[str]) -> None:
+        self.scanners = scanners
 
     def solve(self) -> int:
+        n = len(self.scanners)
+        i = 0
+        for i in range(n - 1):
+            for j in range(i + 1, n):
+                overlaps = overlap(self.scanners[i], self.scanners[j])
+                print(overlaps)
         return 0
 
 
 def main():
-    lines = load_input('data/day19/dev.txt')
-    print(lines)
-    solver = Solver(lines)
-    print(solver.solve())
+    scanners = load_input('data/day19/dev.txt')
+    print(scanners)
+    solver = Solver(scanners)
+    solution = solver.solve()
+    print(solution)
 
 
 if __name__ == '__main__':
