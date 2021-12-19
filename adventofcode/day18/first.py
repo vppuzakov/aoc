@@ -13,6 +13,13 @@ class SailfishPair:
     val: Optional[int] = None
 
     @property
+    def magnitude(self) -> None:
+        if self.val is not None:
+            return self.val
+
+        return 3 * self.left.magnitude + 2 * self.right.magnitude
+
+    @property
     def root(self) -> 'SailfishPair':
         current = self
         while current.parent:
@@ -33,48 +40,60 @@ class SailfishPair:
         return self.parent is None
 
     @property
-    def rightmost(self) -> int:
-        pair = self.right
-        while pair:
-            pair = self.right
+    def rightmost(self) -> 'SailfishPair':
+        pair = self
+        while pair.right:
+            pair = pair.right
 
-        return pair.val
+        return pair
 
     @property
-    def leftmost(self) -> int:
-        pair = self.left
-        while pair:
-            pair = self.left
+    def leftmost(self) -> 'SailfishPair':
+        pair = self
+        while pair.left:
+            pair = pair.left
 
-        return pair.val
+        return pair
 
 
     @property
     def adjleft(self) -> Optional['SailfishPair']:
-        upper = self.parent
-        # find first left not my parent
-        # find last right val
-
-        while upper:
-            if self.isright and self.parent is upper:
-                return upper.left.right if upper.left.right else upper.left
-
-            if upper.isright:
-                if self.isright:
-                    return upper.left
-
-                if upper.parent.left.right:
-                    return upper.parent.left.right
-
-                return upper.parent.left
-
+        upper = self
+        while upper and upper.isleft:
             upper = upper.parent
+
+        return upper.parent.left.rightmost if upper is not self.root else None
+
+        # while upper:
+
+        #     if self.isright and self.parent is upper:
+        #         return upper.left.right if upper.left.right else upper.left
+
+        #     if upper.isright:
+        #         if self.isright:
+        #             return upper.left
+
+        #         if upper.parent.left.right:
+        #             return upper.parent.left.right
+
+        #         return upper.parent.left
+
+        #     upper = upper.parent
 
         return None
 
     @property
     def adjright(self) -> Optional['SailfishPair']:
-        upper = self.parent
+        upper = self
+
+        while upper and upper.isright:
+            upper = upper.parent
+
+        # if upper is self.parent:
+        #     return upper.right.leftmost
+
+        return upper.parent.right.leftmost if upper is not self.root else None
+
         while upper:
             if self.isleft and self.parent is upper:
                 return upper.right.left if upper.right.left else upper.right
@@ -178,7 +197,7 @@ def reduce(pair: SailfishPair) -> None:
     reduced = False
 
     while not reduced:
-        print(pair)
+        # print(pair)
         explosion = find_explosion(pair)
         if explosion:
             explode(explosion)
@@ -202,6 +221,7 @@ def explosion(line: str) -> str:
     explosion = find_explosion(number)
     print(explosion)
     explode(explosion)
+    print(number)
     return number
 
 def reduction(line: str) -> str:
@@ -251,17 +271,18 @@ def main():
 
     # assert reduction('[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]') == str(convert('[[[[0,7],4],[[7,8],[6,0]]],[8,1]]'))
     # assert reduction('[[[[[1,1],[2,2]],[3,3]],[4,4]],[5,5]]') == str(convert('[[[[3,0],[5,3]],[4,4]],[5,5]]'))
-    assert reduction('[[[[4,0],[5,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]')
+    # assert reduction('[[[[4,0],[5,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]')
     # return
 
-    pairs = load_input('data/day18/dev4.txt')
-    for pair in pairs:
-        print(pair)
+    pairs = load_input('data/day18/input.txt')
+    # for pair in pairs:
+    #     print(pair)
 
     solver = Solver(pairs)
     result = solver.solve()
     print('\n\nresult:\n')
     print(result)
+    print(f'{result.magnitude=}')
 
 
 if __name__ == '__main__':
