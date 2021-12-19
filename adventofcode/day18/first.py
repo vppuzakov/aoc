@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Generator, Optional
@@ -55,7 +56,6 @@ class SailfishPair:
 
         return pair
 
-
     @property
     def adjleft(self) -> Optional['SailfishPair']:
         upper = self
@@ -64,24 +64,6 @@ class SailfishPair:
 
         return upper.parent.left.rightmost if upper is not self.root else None
 
-        # while upper:
-
-        #     if self.isright and self.parent is upper:
-        #         return upper.left.right if upper.left.right else upper.left
-
-        #     if upper.isright:
-        #         if self.isright:
-        #             return upper.left
-
-        #         if upper.parent.left.right:
-        #             return upper.parent.left.right
-
-        #         return upper.parent.left
-
-        #     upper = upper.parent
-
-        return None
-
     @property
     def adjright(self) -> Optional['SailfishPair']:
         upper = self
@@ -89,27 +71,7 @@ class SailfishPair:
         while upper and upper.isright:
             upper = upper.parent
 
-        # if upper is self.parent:
-        #     return upper.right.leftmost
-
         return upper.parent.right.leftmost if upper is not self.root else None
-
-        while upper:
-            if self.isleft and self.parent is upper:
-                return upper.right.left if upper.right.left else upper.right
-
-            if upper.isleft:
-                if self.isleft:
-                    return upper.right
-
-                if upper.parent.right.left:
-                    return upper.parent.right.left
-
-                return upper.parent.right
-
-            upper = upper.parent
-
-        return None
 
     def __repr__(self) -> str:
         return f'[{self.left}, {self.right}]' if self.left and self.right else str(self.val)
@@ -211,11 +173,6 @@ def reduce(pair: SailfishPair) -> None:
         reduced = True
 
 
-def add(left: SailfishPair, right: SailfishPair) -> SailfishPair:
-    result = SailfishPair(left, right)
-    return reduce(result)
-
-
 def explosion(line: str) -> str:
     number = convert(line)
     explosion = find_explosion(number)
@@ -223,6 +180,7 @@ def explosion(line: str) -> str:
     explode(explosion)
     print(number)
     return number
+
 
 def reduction(line: str) -> str:
     number = convert(line)
@@ -241,6 +199,8 @@ def traverse(pair: Optional[SailfishPair]) -> Generator[SailfishPair, SailfishPa
 
 
 def add(first: SailfishPair, second: SailfishPair) -> SailfishPair:
+    first = deepcopy(first)
+    second = deepcopy(second)
     pair = SailfishPair(first, second)
     first.parent = pair
     second.parent = pair
@@ -260,6 +220,17 @@ class Solver:
 
         return result
 
+    def largest_sum(self) -> int:
+        largest = -1
+        for first in self.pairs:
+            for second in self.pairs:
+                if first is second:
+                    continue
+
+                result = add(first, second)
+                largest = max(result.magnitude, largest)
+
+        return largest
 
 def main():
     # assert str(explosion('[[[[[9,8],1],2],3],4]')) == str(convert('[[[[0,9],2],3],4]'))
@@ -272,17 +243,15 @@ def main():
     # assert reduction('[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]') == str(convert('[[[[0,7],4],[[7,8],[6,0]]],[8,1]]'))
     # assert reduction('[[[[[1,1],[2,2]],[3,3]],[4,4]],[5,5]]') == str(convert('[[[[3,0],[5,3]],[4,4]],[5,5]]'))
     # assert reduction('[[[[4,0],[5,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]')
-    # return
 
     pairs = load_input('data/day18/input.txt')
-    # for pair in pairs:
-    #     print(pair)
 
     solver = Solver(pairs)
     result = solver.solve()
     print('\n\nresult:\n')
     print(result)
     print(f'{result.magnitude=}')
+    print(f'{solver.largest_sum()}')
 
 
 if __name__ == '__main__':
