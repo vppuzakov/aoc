@@ -10,9 +10,10 @@ from rich import print
 class Point:
     x: int
     y: int
+    z: int
 
     def __repr__(self) -> str:
-        return f'({self.x}, {self.y})'
+        return f'({self.x}, {self.y}, {self.z})'
 
 
 @dataclass
@@ -26,8 +27,8 @@ scanner_name_re = re.compile('--- scanner (\d*) ---')
 
 
 def convert_point(data: str) -> Point:
-    x, y = data.split(',')
-    return Point(int(x), int(y))
+    x, y, z = data.split(',')
+    return Point(int(x), int(y), int(z))
 
 
 def convert(data: str) -> Scanner:
@@ -42,16 +43,17 @@ def load_input(filename: str) -> list[Scanner]:
     return [convert(scanner) for scanner in raw_scanners]
 
 
-def distances(scanner: Scanner) -> dict[tuple[int, int]: tuple[int, int]]:
+def distances(scanner: Scanner) -> dict[tuple[int, int, int]: tuple[int, int]]:
     result = {}
     beacons = scanner.beacons
     n = len(beacons)
     for i in range(n - 1):
         for j in range(i + 1, n):
-            dx = beacons[i].x - beacons[j].x
-            dy = beacons[i].y - beacons[j].y
-            result[(dx, dy)] = (i, j)
-            result[(-dx, -dy)] = (j, i)
+            dx = abs(beacons[i].x - beacons[j].x)
+            dy = abs(beacons[i].y - beacons[j].y)
+            dz = abs(beacons[i].z - beacons[j].z)
+            coords = tuple(sorted((dx, dy, dz)))
+            result[coords] = (i, j)
 
     return result
 
@@ -85,7 +87,7 @@ class Solver:
 
 
 def main():
-    scanners = load_input('data/day19/dev.txt')
+    scanners = load_input('data/day19/dev3.txt')
     print(scanners)
     solver = Solver(scanners)
     solution = solver.solve()
